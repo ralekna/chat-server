@@ -1,20 +1,32 @@
 import SocketIO from 'socket.io';
+import Express from 'express';
+import Http from 'http';
 
 export default class ChatServer {
-    constructor(private host: string, private port: number) {
-
-    }
+    constructor(private host: string, private port: number) {}
 
     public init(): void {
-        let io: SocketIO.Server = SocketIO(5000);
+
+        let app = Express();
+
+        let server = Http.createServer(app);
+
+        let io: SocketIO.Server = SocketIO(server);
 
         io.on('connection', (socket) => {
-
-            socket.broadcast.emit('user connected', { message: 'user connected', details: socket.id });
+            socket.broadcast.emit('message', { message: 'user connected', details: socket.id });
             socket.emit('message', { message: 'welcome to chat', details: socket.id });
+
+            socket.on('message', (message) => {
+                socket.broadcast.emit('message', {message, details: socket.id});
+            })
 
             console.log('user connect', socket.id);
         });
+        
+        server.listen(this.port, () => {
+            console.log(`listening on *:${this.port}`);
+          });
 
         // let chat = io
         //     .of('/chat')
