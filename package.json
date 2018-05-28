@@ -4,11 +4,11 @@
   "description": "",
   "main": "src/index.js",
   "scripts": {
-    "start": "tsc",
-    "serve": "node dist/index.js",
+    "start": "npm run serve",
+    "serve": "npm run build-ts && node dist/index.js",
     "watch-node": "nodemon dist/index.js",
-    "build-ts": "tsc",
-    "watch-ts": "tsc -w",
+    "build-ts": "tsc --listEmittedFiles",
+    "watch-ts": "tsc -w --listEmittedFiles",
     "build": "npm run build-ts",
     "tslint": "tslint -c tslint.json -p tsconfig.json",
     "test": "mocha ."
@@ -28,6 +28,7 @@
     "typescript": "^2.8.3"
   },
   "devDependencies": {
+    "@types/socket.io": "^1.4.33",
     "nodemon": "^1.17.5",
     "tslint": "^5.10.0"
   }
