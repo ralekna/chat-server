@@ -8,6 +8,7 @@ export default class Room {
 
   constructor(
     public name: string,
+    public password: string,
     public middleware: Middleware[] = []
   ) {
     this.middleware.forEach(middleware => middleware.setRoom(name));

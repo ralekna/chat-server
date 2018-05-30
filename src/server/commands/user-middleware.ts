@@ -1,13 +1,13 @@
-import {Server, Socket} from "socket.io";
+import {Socket} from "socket.io";
 import Middleware, {executeTextCommand} from "./middleware";
 import Message, {MessageType} from "../message";
 import User from "../users/user";
 import {Inject} from "container-ioc";
-import {IUserRepository, TUserRepository} from "../users/users-repository";
+import {UserRepository} from "../users/users-repository";
 
 export default class UserMiddleware extends Middleware {
 
-  constructor(@Inject(TUserRepository) private userRepository: IUserRepository) {
+  constructor(@Inject(UserRepository) private userRepository: UserRepository) {
     super();
   }
 

@@ -6,7 +6,7 @@ export default class Message {
     public room: string | string[],
     public user?: User | null,
     public timestamp: Date = new Date(),
-    public type: MessageType.MESSAGE | MessageType.CONNECTION | MessageType.NOTIFICATION | MessageType.DISCONNECT = MessageType.MESSAGE,
+    public type: MessageType.MESSAGE | MessageType.CONNECTION | MessageType.NOTIFICATION | MessageType.DISCONNECT | MessageType.JOIN = MessageType.MESSAGE,
   ) {
 
   }
@@ -26,7 +26,8 @@ export enum MessageType {
   MESSAGE = "message",
   NOTIFICATION = "notification",
   CONNECTION = "connection",
-  DISCONNECT = "disconnect"
+  DISCONNECT = "disconnect",
+  JOIN = "join"
 }
 
 export function isValidMessagePayload(payload: any): boolean {

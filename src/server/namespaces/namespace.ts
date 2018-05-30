@@ -98,6 +98,9 @@ export default class NamespaceWrapper {
 
       });
 
+    this.middleware.forEach(middleware => middleware.setNamespaceWrapper(this));
+    this.middleware.forEach(middleware => middleware.setNamespace(this.namespace));
+
     this.rooms.forEach(room => {
       room.setNamespace(this.namespace);
       room.setServer(this.socketServer);
