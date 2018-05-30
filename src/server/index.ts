@@ -1,9 +1,17 @@
-import SocketIO, { Namespace } from 'socket.io';
+import SocketIO, {Namespace, Server} from 'socket.io';
 import Express from 'express';
 import Http from 'http';
+import Middleware from "./commands/middleware";
+import Room from "./rooms/room";
+import NamespaceWrapper from "./namespaces/namespace";
 
 export default class ChatServer {
-  constructor(private host: string, private port: number) {
+
+  public socketServer!: Server;
+
+  constructor(
+    private port: number,
+    private namespaces: NamespaceWrapper[]) {
   }
 
   public init(): void {
@@ -12,9 +20,15 @@ export default class ChatServer {
 
     let server = Http.createServer(app);
 
-    let io: SocketIO.Server = SocketIO(server);
+    this.socketServer = SocketIO(server);
 
-    let chat: Namespace = io.on('connection', (socket) => {
+    if (this.socketServer) {
+      this.namespaces.forEach(namespaceWrapper => {
+        namespaceWrapper.setServer(this, this.socketServer);
+      })
+    }
+
+    let chat: Namespace = socketServer.on('connection', (socket) => {
       socket.broadcast.emit('message', {message: 'user connected', details: socket.id});
       socket.emit('message', {message: 'welcome to chat', details: socket.id});
 
@@ -31,24 +45,24 @@ export default class ChatServer {
       console.log(`listening on *:${this.port}`);
     });
 
-    // let chat = io
-    //     .of('/chat')
-    //     .on('connection', (socket: SocketIO.Socket) => {
-    //         socket.emit('a message', {
-    //             that: 'only'
-    //             , '/chat': 'will get'
-    //         });
-    //         chat.emit('a message', {
-    //             everyone: 'in'
-    //             , '/chat': 'will get'
-    //         });
-    //     });
-    //
-    // let news = io
-    //     .of('/news')
-    //     .on('connection', (socket: SocketIO.Socket) => {
-    //         socket.emit('item', { news: 'item' });
-    //     });
+    let chat2: Namespace = socketServer
+        .of('/public')
+        .on('connection', (socket: SocketIO.Socket) => {
+            socket.emit('a message', {
+                that: 'only'
+                , '/chat': 'will get'
+            });
+            chat.emit('a message', {
+                everyone: 'in'
+                , '/chat': 'will get'
+            });
+        });
+
+    let news = socketServer
+        .of('/news')
+        .on('connection', (socket: SocketIO.Socket) => {
+            socket.emit('item', { news: 'item' });
+        });
     console.log('starting server');
   }
 }
