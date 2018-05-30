@@ -3,7 +3,7 @@ import User from "./users/user";
 export default class Message {
   constructor(
     public text: string,
-    public room: string,
+    public room: string | string[],
     public user?: User | null,
     public timestamp: Date = new Date(),
     public type: MessageType.MESSAGE | MessageType.CONNECTION | MessageType.NOTIFICATION | MessageType.DISCONNECT = MessageType.MESSAGE,

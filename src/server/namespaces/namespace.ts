@@ -9,6 +9,7 @@ import {
   MESSAGE_FORMAT,
   MessageType
 } from "../message";
+import {text} from "body-parser";
 
 export default class NamespaceWrapper {
 
@@ -33,6 +34,7 @@ export default class NamespaceWrapper {
     this.namespace = this.socketServer
       .of(this.name)
       .on(MessageType.CONNECTION, socket => {
+
         this.middleware.reduce<Message | boolean | undefined>((message, middleware) => {
           if (message === false) {
             return false; // skipp remaining middleware
@@ -63,6 +65,7 @@ export default class NamespaceWrapper {
           }
 
           this.middleware.reduce<Message | false>((message, middleware) => {
+
             if (message === false) {
               return false; // skipp remaining middleware
             }
@@ -77,7 +80,7 @@ export default class NamespaceWrapper {
         });
 
 
-        socket.on(MessageType.DISCONNECT, () => {
+        socket.on(MessageType.DISCONNECT, (reason: string) => {
 
           this.middleware.reduce<Message | false | undefined>((message, middleware) => {
             if (message === false) {
@@ -90,10 +93,15 @@ export default class NamespaceWrapper {
               return message;
             }
 
-          }, undefined);
+          }, new Message(reason, Object.keys(socket.rooms)));
         });
 
       });
+
+    this.rooms.forEach(room => {
+      room.setNamespace(this.namespace);
+      room.setServer(this.socketServer);
+    });
 
   }
 }

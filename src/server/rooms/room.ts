@@ -3,17 +3,24 @@ import {Namespace, Server} from "socket.io";
 
 export default class Room {
 
+  public namespace!: Namespace;
+  public server!: Server;
+
   constructor(
     public name: string,
-    public namespace: Namespace,
-    public server: Server,
-    public messageMiddleware: Middleware[] = [],
-    public connectMiddleware: Middleware[] = []
+    public middleware: Middleware[] = []
   ) {
-    this.namespace = this.server
-      .of(this.name)
-      .on('connection', socket => {
-
-      })
+    this.middleware.forEach(middleware => middleware.setRoom(name));
   }
+
+  setNamespace(namespace: Namespace): void {
+    this.namespace = namespace;
+    this.middleware.forEach(middleware => middleware.setNamespace(namespace))
+  }
+
+  setServer(server: Server): void {
+    this.server = server;
+    this.middleware.forEach(middleware => middleware.setServer(server));
+  }
+
 }

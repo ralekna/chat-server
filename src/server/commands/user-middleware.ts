@@ -24,9 +24,22 @@ export default class UserMiddleware extends Middleware {
     let user = this.userRepository.getUserBySocketId(socket.id);
     this.userRepository.remove(user);
 
-    let disconnectMessage = new Message(`User [${user.nick}] has left the server`, '', user);
-    this.server.emit(MessageType.NOTIFICATION, disconnectMessage);
-    return disconnectMessage;
+    let roomsNS;
+    if (message && message.room) {
+      if (Array.isArray(message.room)) {
+        roomsNS = this.namespace;
+        for (let room of message.room) {
+          roomsNS = roomsNS.to(room);
+        }
+      } else {
+        roomsNS = this.namespace.to(message.room);
+      }
+      let disconnectMessage = new Message(`User [${user.nick}] has left the server`, '', user);
+      roomsNS.emit(MessageType.NOTIFICATION, disconnectMessage);
+      return disconnectMessage;
+    }
+
+    return false;
   }
 
   onMessage(socket: Socket, message: Message): Message | false {
