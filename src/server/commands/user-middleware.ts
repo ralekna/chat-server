@@ -16,7 +16,7 @@ export default class UserMiddleware extends Middleware {
 
     this.userRepository.add(user);
     let greetingMessage = new Message(`Welcome to Edgeless server! \nYour nickname is "${user.nick}".`, socket.id, user);
-    socket.emit(MessageType.NOTIFICATION, greetingMessage);
+    socket.emit(MessageType.JOIN, greetingMessage);
     return greetingMessage;
   }
 

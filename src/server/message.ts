@@ -35,7 +35,7 @@ export function isValidMessagePayload(payload: any): boolean {
 }
 
 export function convertPayloadToMessage(payload: any): Message {
-  return new Message(payload.type || MessageType.MESSAGE, payload.text, payload.room || '');
+  return new Message(payload.text, payload.room || '', payload.timestamp || new Date(), payload.type || MessageType.MESSAGE);
 }
 
 
