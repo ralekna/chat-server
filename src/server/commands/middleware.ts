@@ -1,11 +1,22 @@
 import {Server, Socket} from "socket.io";
 import Message from "../message";
+import NamespaceWrapper from "../namespaces/namespace";
 
 export default abstract class Middleware {
   public server!: Server;
+  public room!: string;
+  public namespaceWrapper!: NamespaceWrapper;
 
   setServer(server: Server): void {
     this.server = server;
+  }
+
+  setRoom(room: string): void {
+    this.room = room;
+  }
+
+  setNamespace(namespaceWrapper: NamespaceWrapper): void {
+    this.namespaceWrapper = namespaceWrapper;
   }
 
   onMessage(socket: Socket, message: Message): Message | false {

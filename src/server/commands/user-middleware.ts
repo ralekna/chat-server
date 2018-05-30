@@ -15,7 +15,7 @@ export default class UserMiddleware extends Middleware {
     let user = new User(socket);
 
     this.userRepository.add(user);
-    let greetingMessage = new Message(MessageType.NOTIFICATION, `Welcome to Edgeless server! \nYour nickname is "${user.nick}".`, socket.id, user);
+    let greetingMessage = new Message(`Welcome to Edgeless server! \nYour nickname is "${user.nick}".`, socket.id, user);
     socket.emit(MessageType.NOTIFICATION, greetingMessage);
     return greetingMessage;
   }
@@ -24,7 +24,7 @@ export default class UserMiddleware extends Middleware {
     let user = this.userRepository.getUserBySocketId(socket.id);
     this.userRepository.remove(user);
 
-    let disconnectMessage = new Message(MessageType.NOTIFICATION, `User [${user.nick}] has left the server`, '', user);
+    let disconnectMessage = new Message(`User [${user.nick}] has left the server`, '', user);
     this.server.emit(MessageType.NOTIFICATION, disconnectMessage);
     return disconnectMessage;
   }
@@ -39,29 +39,25 @@ export default class UserMiddleware extends Middleware {
       nick: (message, ...args) => {
         let newNick = args[0];
         if (!newNick) {
-          let errorMessage = new Message(MessageType.NOTIFICATION,
-            `Error: argument for new nickname wasn't provided`, socket.id);
+          let errorMessage = new Message(`Error: argument for new nickname wasn't provided`, socket.id);
           socket.emit(MessageType.NOTIFICATION, errorMessage);
           return false;
         } else {
           let userWithSpecifiedNick = this.userRepository.getUserByNickname(newNick);
           if (userWithSpecifiedNick) {
             if (userWithSpecifiedNick.socket !== socket) {
-              let errorMessage = new Message(MessageType.NOTIFICATION,
-                `Error: this nickname is already taken by someone else`, socket.id);
+              let errorMessage = new Message(`Error: this nickname is already taken by someone else`, socket.id);
               socket.emit(MessageType.NOTIFICATION, errorMessage);
               return false;
             } else {
-              let notification = new Message(MessageType.NOTIFICATION,
-                `Congratulations, you became yourself!`, socket.id);
+              let notification = new Message(`Congratulations, you became yourself!`, socket.id);
               socket.emit(MessageType.NOTIFICATION, notification);
               return false;
 
             }
           } else {
             message.user!.nick = newNick;
-            let notification = new Message(MessageType.NOTIFICATION,
-              `Your nickname now is [${newNick}]`, socket.id);
+            let notification = new Message(`Your nickname now is [${newNick}]`, socket.id);
             socket.emit(MessageType.NOTIFICATION, notification);
             return false;
           }

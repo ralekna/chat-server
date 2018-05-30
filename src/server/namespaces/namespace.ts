@@ -55,7 +55,7 @@ export default class NamespaceWrapper {
 
           // this could be also in a middleware but IMO it would complicate things
           if (!isValidMessagePayload(payload)) {
-            socket.to(senderId).send(new Message(MessageType.NOTIFICATION, `Unacceptable message format! Correct format: ${MESSAGE_FORMAT}`, senderId, null));
+            socket.to(senderId).emit(MessageType.NOTIFICATION, new Message(`Unacceptable message format! Correct format: ${MESSAGE_FORMAT}`, senderId, null));
             console.log(`User [${socket.id}] tried to post malformed message`);
             return;
           } else {

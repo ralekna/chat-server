@@ -2,11 +2,11 @@ import User from "./users/user";
 
 export default class Message {
   constructor(
-    public type: MessageType.MESSAGE | MessageType.CONNECTION | MessageType.NOTIFICATION | MessageType.DISCONNECT,
-    public text: string ,
+    public text: string,
     public room: string,
     public user?: User | null,
-    public timestamp: Date = new Date()
+    public timestamp: Date = new Date(),
+    public type: MessageType.MESSAGE | MessageType.CONNECTION | MessageType.NOTIFICATION | MessageType.DISCONNECT = MessageType.MESSAGE,
   ) {
 
   }
