@@ -1,16 +1,12 @@
-import User from "./user";
-import {Namespace} from "socket.io";
-import NamespaceWrapper from "./namespaces/namespace";
+import User from "./users/user";
 
 export default class Message {
   constructor(
-    public timestamp: Date,
-    public type: MessageType.MESSAGE | MessageType.CONNECTION | MessageType.NOTIFICATION,
-    public text?: string,
+    public type: MessageType.MESSAGE | MessageType.CONNECTION | MessageType.NOTIFICATION | MessageType.DISCONNECT,
+    public text: string ,
+    public room: string,
     public user?: User | null,
-    public namespace?: NamespaceWrapper,
-    public room? :string,
-    public skipNextMiddleware: boolean = false
+    public timestamp: Date = new Date()
   ) {
 
   }
@@ -29,9 +25,17 @@ export default class Message {
 export enum MessageType {
   MESSAGE = "message",
   NOTIFICATION = "notification",
-  CONNECTION = "connection"
+  CONNECTION = "connection",
+  DISCONNECT = "disconnect"
 }
 
 export function isValidMessagePayload(payload: any): boolean {
-  return (payload.timestamp && payload.type);
+  return payload.text && payload.text.length;
 }
+
+export function convertPayloadToMessage(payload: any): Message {
+  return new Message(payload.type || MessageType.MESSAGE, payload.text, payload.room || '');
+}
+
+
+export const MESSAGE_FORMAT = `{type?: string, text: string, room?: string, timestamp?: Date}`;

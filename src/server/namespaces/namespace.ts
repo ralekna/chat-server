@@ -2,7 +2,13 @@ import {Namespace, Server} from "socket.io";
 import Middleware from "../commands/middleware";
 import ChatServer from "../index";
 import Room from "../rooms/room";
-import {default as Message, MessageType} from "../message";
+import {
+  convertPayloadToMessage,
+  default as Message,
+  isValidMessagePayload,
+  MESSAGE_FORMAT,
+  MessageType
+} from "../message";
 
 export default class NamespaceWrapper {
 
@@ -12,9 +18,7 @@ export default class NamespaceWrapper {
 
   constructor(
     public name: string,
-    public messageMiddleware: Middleware[] = [],
-    public connectMiddleware: Middleware[] = [],
-    public disconnectMiddleware: Middleware[] = [],
+    public middleware: Middleware[] = [],
     public rooms: Room[]
   ) {
   }
@@ -24,20 +28,71 @@ export default class NamespaceWrapper {
     this.socketServer = socketServer;
 
 
-    this.messageMiddleware.forEach(middleware => middleware.setServer(socketServer));
-    this.connectMiddleware.forEach(middleware => middleware.setServer(socketServer));
-    this.disconnectMiddleware.forEach(middleware => middleware.setServer(socketServer));
+    this.middleware.forEach(middleware => middleware.setServer(socketServer));
 
     this.namespace = this.socketServer
       .of(this.name)
       .on(MessageType.CONNECTION, socket => {
-        this.connectMiddleware.reduce((message, middleware) => {
-          return middleware.execute(socket, message);
-        }, new Message(new Date(), MessageType.CONNECTION, '', null, this, socket.id));
+        this.middleware.reduce<Message | boolean | undefined>((message, middleware) => {
+          if (message === false) {
+            return false; // skipp remaining middleware
+          }
+
+          if (middleware.hasOwnProperty('onConnect')) {
+            if (message instanceof Message) {
+              return middleware.onConnect(socket, message);
+            }
+            return middleware.onConnect(socket);
+          } else {
+            return message;
+          }
+
+        }, undefined);
 
         socket.on(MessageType.MESSAGE, (senderId: string, payload: any) => {
 
-        })
+          let message: Message;
+
+          // this could be also in a middleware but IMO it would complicate things
+          if (!isValidMessagePayload(payload)) {
+            socket.to(senderId).send(new Message(MessageType.NOTIFICATION, `Unacceptable message format! Correct format: ${MESSAGE_FORMAT}`, senderId, null));
+            console.log(`User [${socket.id}] tried to post malformed message`);
+            return;
+          } else {
+            message = convertPayloadToMessage(payload);
+          }
+
+          this.middleware.reduce<Message | false>((message, middleware) => {
+            if (message === false) {
+              return false; // skipp remaining middleware
+            }
+
+            if (middleware.hasOwnProperty('onMessage')) {
+              return middleware.onMessage(socket, message);
+            } else {
+              return message;
+            }
+
+          }, message);
+        });
+
+
+        socket.on(MessageType.DISCONNECT, () => {
+
+          this.middleware.reduce<Message | false | undefined>((message, middleware) => {
+            if (message === false) {
+              return false; // skipp remaining middleware
+            }
+
+            if (middleware.hasOwnProperty('onDisconnect')) {
+              return middleware.onDisconnect(socket, message);
+            } else {
+              return message;
+            }
+
+          }, undefined);
+        });
+
       });
 
   }

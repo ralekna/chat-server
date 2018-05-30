@@ -1,26 +1,75 @@
 import {Server, Socket} from "socket.io";
 import Middleware, {executeTextCommand} from "./middleware";
 import Message, {MessageType} from "../message";
-import User from "../user";
+import User from "../users/user";
+import {Inject} from "container-ioc";
+import {IUserRepository, TUserRepository} from "../users/users-repository";
 
-export default class UserMiddleware extends Middleware{
+export default class UserMiddleware extends Middleware {
 
-  private users: {[socketId: string]: User} = {};
+  constructor(@Inject(TUserRepository) private userRepository: IUserRepository) {
+    super();
+  }
 
-  execute(socket: Socket, message: Message): Message {
-    let user = this.users[socket.id] || (this.users[socket.id] = new User(socket));
+  onConnect(socket: Socket, message?: Message): Message | false {
+    let user = new User(socket);
+
+    this.userRepository.add(user);
+    let greetingMessage = new Message(MessageType.NOTIFICATION, `Welcome to Edgeless server! \nYour nickname is "${user.nick}".`, socket.id, user);
+    socket.emit(MessageType.NOTIFICATION, greetingMessage);
+    return greetingMessage;
+  }
+
+  onDisconnect(socket: Socket, message?: Message): Message | false {
+    let user = this.userRepository.getUserBySocketId(socket.id);
+    this.userRepository.remove(user);
+
+    let disconnectMessage = new Message(MessageType.NOTIFICATION, `User [${user.nick}] has left the server`, '', user);
+    this.server.emit(MessageType.NOTIFICATION, disconnectMessage);
+    return disconnectMessage;
+  }
+
+  onMessage(socket: Socket, message: Message): Message | false {
+
+    if (!message.user) {
+      message.user = this.userRepository.getUserBySocketId(socket.id);
+    }
 
     return executeTextCommand(message, {
-      nick(message, ...args) {
-        let newName = args[0];
-        if (!newName) {
-          let errorMessage = new Message(new Date(), MessageType.NOTIFICATION,
-            `Error: argument for new nickname wasn't provided`, user, undefined, undefined, true);
+      nick: (message, ...args) => {
+        let newNick = args[0];
+        if (!newNick) {
+          let errorMessage = new Message(MessageType.NOTIFICATION,
+            `Error: argument for new nickname wasn't provided`, socket.id);
           socket.emit(MessageType.NOTIFICATION, errorMessage);
-          return errorMessage;
+          return false;
+        } else {
+          let userWithSpecifiedNick = this.userRepository.getUserByNickname(newNick);
+          if (userWithSpecifiedNick) {
+            if (userWithSpecifiedNick.socket !== socket) {
+              let errorMessage = new Message(MessageType.NOTIFICATION,
+                `Error: this nickname is already taken by someone else`, socket.id);
+              socket.emit(MessageType.NOTIFICATION, errorMessage);
+              return false;
+            } else {
+              let notification = new Message(MessageType.NOTIFICATION,
+                `Congratulations, you became yourself!`, socket.id);
+              socket.emit(MessageType.NOTIFICATION, notification);
+              return false;
+
+            }
+          } else {
+            message.user!.nick = newNick;
+            let notification = new Message(MessageType.NOTIFICATION,
+              `Your nickname now is [${newNick}]`, socket.id);
+            socket.emit(MessageType.NOTIFICATION, notification);
+            return false;
+          }
         }
-        return message;
       }
     });
+
   }
+
+
 }
