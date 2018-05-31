@@ -4,6 +4,7 @@ import Message, {MessageType} from "../message";
 import User from "../users/user";
 import {Inject, Injectable} from "container-ioc";
 import {UserRepository} from "../users/users-repository";
+import SERVER_BOT_USER from "../users/server-bot-user";
 
 @Injectable()
 export default class UserMiddleware extends Middleware {
@@ -36,7 +37,7 @@ export default class UserMiddleware extends Middleware {
       } else {
         roomsNS = this.namespace.to(message.room);
       }
-      let disconnectMessage = new Message(`User [${user.nick}] has left the server`, '', user);
+      let disconnectMessage = new Message(`User [${user.nick}] has left the server`, '', SERVER_BOT_USER);
       roomsNS.emit(MessageType.NOTIFICATION, disconnectMessage);
       return disconnectMessage;
     }
@@ -54,25 +55,25 @@ export default class UserMiddleware extends Middleware {
       nick: (message, ...args) => {
         let newNick = args[0];
         if (!newNick) {
-          let errorMessage = new Message(`Error: argument for new nickname wasn't provided`, socket.id);
+          let errorMessage = new Message(`Error: argument for new nickname wasn't provided`, socket.id, SERVER_BOT_USER);
           socket.emit(MessageType.NOTIFICATION, errorMessage);
           return false;
         } else {
           let userWithSpecifiedNick = this.userRepository.getUserByNickname(newNick);
           if (userWithSpecifiedNick) {
             if (userWithSpecifiedNick.socket !== socket) {
-              let errorMessage = new Message(`Error: this nickname is already taken by someone else`, socket.id);
+              let errorMessage = new Message(`Error: this nickname is already taken by someone else`, socket.id, SERVER_BOT_USER);
               socket.emit(MessageType.NOTIFICATION, errorMessage);
               return false;
             } else {
-              let notification = new Message(`Congratulations, you became yourself!`, socket.id);
+              let notification = new Message(`Congratulations, you became yourself!`, socket.id, SERVER_BOT_USER);
               socket.emit(MessageType.NOTIFICATION, notification);
               return false;
 
             }
           } else {
             message.user!.nick = newNick;
-            let notification = new Message(`Your nickname now is [${newNick}]`, socket.id);
+            let notification = new Message(`Your nickname now is [${newNick}]`, socket.id, SERVER_BOT_USER);
             socket.emit(MessageType.NOTIFICATION, notification);
             return false;
           }

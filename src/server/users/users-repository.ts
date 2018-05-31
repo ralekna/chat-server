@@ -17,6 +17,10 @@ export class UserRepository {
     return this.users[id];
   }
 
+  getUsersByRoom(room: string): User[] {
+    return Object.values(this.users).filter(user => !!user.socket.rooms[room]);
+  }
+
   remove(user: User): void {
     delete this.users[user.socket.id];
   }

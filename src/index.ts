@@ -12,14 +12,16 @@ import RoomsMiddleware from "./server/commands/rooms-middleware";
 const container = new Container();
 container.register([
   {token: UserRepository, useClass: UserRepository},
-  {token: UserMiddleware, useClass: UserMiddleware}
+  {token: UserMiddleware, useClass: UserMiddleware},
+  {token: RoomsMiddleware, useClass: RoomsMiddleware},
+  {token: ChatMiddleware, useClass: ChatMiddleware}
 ]);
 
 let chatServer = new ChatServer(5000, [
   new NamespaceWrapper('/', [
     container.resolve(UserMiddleware),
-    new RoomsMiddleware(),
-    new ChatMiddleware()
+    container.resolve(RoomsMiddleware),
+    container.resolve(ChatMiddleware)
   ], [
     new Room('numbers', '', [
       new NumberGenerationMiddleware()
