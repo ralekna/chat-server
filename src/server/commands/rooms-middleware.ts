@@ -48,8 +48,13 @@ export default class RoomsMiddleware extends Middleware {
       count: (message, ...args) => {
         let roomName = args[0];
         let numberOfUsers = this.userRepository.getUsersByRoom(roomName).length;
-        let countNotification = new Message(`This room has ${numberOfUsers} users.`, message.room, SERVER_BOT_USER);
-        socket.emit(MessageType.NOTIFICATION, countNotification);
+        let notification = new Message(`This room has ${numberOfUsers} users.`, message.room, SERVER_BOT_USER);
+        socket.emit(MessageType.NOTIFICATION, notification);
+        return false;
+      },
+      rooms: (message, ...args) => {
+        let publicRooms = this.namespaceWrapper.rooms.filter(room => !room.password);
+        let notification = new Message(`Existing public rooms: \n${publicRooms.join('\n')}`, message.room, SERVER_BOT_USER);
         return false;
       }
     });

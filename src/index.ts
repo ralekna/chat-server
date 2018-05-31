@@ -7,6 +7,7 @@ import UserMiddleware from "./server/commands/user-middleware";
 import Room from "./server/rooms/room";
 import NumberGenerationMiddleware from "./server/commands/number-generation-middleware";
 import RoomsMiddleware from "./server/commands/rooms-middleware";
+import HelpMiddleware from "./server/commands/help-middleware";
 
 // initialize dependencies
 const container = new Container();
@@ -21,7 +22,8 @@ let chatServer = new ChatServer(5000, [
   new NamespaceWrapper('/', [
     container.resolve(UserMiddleware),
     container.resolve(RoomsMiddleware),
-    container.resolve(ChatMiddleware)
+    container.resolve(ChatMiddleware),
+    new HelpMiddleware()
   ], [
     new Room('numbers', '', [
       new NumberGenerationMiddleware()
