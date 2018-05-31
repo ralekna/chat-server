@@ -7,6 +7,7 @@ export default class Message {
     public user?: User | null,
     public timestamp: Date = new Date(),
     public type: MessageType.MESSAGE | MessageType.CONNECTION | MessageType.NOTIFICATION | MessageType.DISCONNECT | MessageType.JOIN = MessageType.MESSAGE,
+    public data?: any
   ) {
 
   }
@@ -17,7 +18,8 @@ export default class Message {
       type: this.type,
       text: this.text,
       user: this.user ? this.user.nick : undefined,
-      room: this.room
+      room: this.room,
+      data: this.data
     };
   }
 }
@@ -27,7 +29,8 @@ export enum MessageType {
   NOTIFICATION = "notification",
   CONNECTION = "connection",
   DISCONNECT = "disconnect",
-  JOIN = "join"
+  JOIN = "join",
+  NICK = "nick"
 }
 
 export function isValidMessagePayload(payload: any): boolean {

@@ -15,7 +15,7 @@ const COMMANDS_HELP =
 export default class HelpMiddleware extends Middleware {
 
   onConnect(socket: Socket, message?: Message): Message | false {
-    let notification = new Message(`Type /help to get a list commands.`, socket.id, SERVER_BOT_USER);
+    let notification = new Message(`Type /help to get a list of commands.`, socket.id, SERVER_BOT_USER);
     socket.emit(MessageType.NOTIFICATION, notification);
     return notification;
   }
@@ -25,11 +25,10 @@ export default class HelpMiddleware extends Middleware {
     return executeTextCommand(message, {
       help: (message, ...args) => {
 
-        let notification = new Message(`Type /help to get a list commands.`, socket.id, SERVER_BOT_USER);
+        let notification = new Message(COMMANDS_HELP, socket.id, SERVER_BOT_USER);
         socket.emit(MessageType.NOTIFICATION, notification);
-        return false;
+        return notification;
       }
     });
-
   }
 }
