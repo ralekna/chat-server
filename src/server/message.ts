@@ -31,7 +31,7 @@ export enum MessageType {
 }
 
 export function isValidMessagePayload(payload: any): boolean {
-  return payload.text && payload.text.length;
+  return payload && payload.text && payload.text.length;
 }
 
 export function convertPayloadToMessage(payload: any): Message {

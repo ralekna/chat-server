@@ -32,7 +32,7 @@ export default class RoomsMiddleware extends Middleware {
         }
 
         socket.join(roomName, () => {
-          let joinNotification = new Message(`You joined room [${roomName}]`, message.room);
+          let joinNotification = new Message(`You joined room [${roomName}]`, roomName);
           socket.emit(MessageType.JOIN, joinNotification);
         });
         return false;

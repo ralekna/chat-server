@@ -35,6 +35,10 @@ export default abstract class Middleware {
   onDisconnect(socket: Socket, message?: Message): Message | false {
     return message ? message : false;
   };
+
+  getName(): string {
+    return this.constructor.name;
+  }
 };
 
 export function executeTextCommand(

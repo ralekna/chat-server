@@ -6,6 +6,7 @@ import {UserRepository} from "./server/users/users-repository";
 import UserMiddleware from "./server/commands/user-middleware";
 import Room from "./server/rooms/room";
 import NumberGenerationMiddleware from "./server/commands/number-generation-middleware";
+import RoomsMiddleware from "./server/commands/rooms-middleware";
 
 // initialize dependencies
 const container = new Container();
@@ -17,6 +18,7 @@ container.register([
 let chatServer = new ChatServer(5000, [
   new NamespaceWrapper('/', [
     container.resolve(UserMiddleware),
+    new RoomsMiddleware(),
     new ChatMiddleware()
   ], [
     new Room('numbers', '', [

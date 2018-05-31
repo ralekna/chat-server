@@ -2,9 +2,10 @@ import {Socket} from "socket.io";
 import Middleware, {executeTextCommand} from "./middleware";
 import Message, {MessageType} from "../message";
 import User from "../users/user";
-import {Inject} from "container-ioc";
+import {Inject, Injectable} from "container-ioc";
 import {UserRepository} from "../users/users-repository";
 
+@Injectable()
 export default class UserMiddleware extends Middleware {
 
   constructor(@Inject(UserRepository) private userRepository: UserRepository) {
@@ -16,6 +17,7 @@ export default class UserMiddleware extends Middleware {
 
     this.userRepository.add(user);
     let greetingMessage = new Message(`Welcome to Edgeless server! \nYour nickname is "${user.nick}".`, socket.id, user);
+    console.log(`${user.nick} joined server`);
     socket.emit(MessageType.JOIN, greetingMessage);
     return greetingMessage;
   }

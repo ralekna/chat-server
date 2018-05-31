@@ -9,7 +9,6 @@ import {
   MESSAGE_FORMAT,
   MessageType
 } from "../message";
-import {text} from "body-parser";
 
 export default class NamespaceWrapper {
 
@@ -34,13 +33,14 @@ export default class NamespaceWrapper {
     this.namespace = this.socketServer
       .of(this.name)
       .on(MessageType.CONNECTION, socket => {
-
+        console.log('user connected', socket.id);
         this.middleware.reduce<Message | boolean | undefined>((message, middleware) => {
           if (message === false) {
-            return false; // skipp remaining middleware
+            console.log('skipping');
+            return false; // skip remaining middleware
           }
 
-          if (middleware.hasOwnProperty('onConnect')) {
+          if (middleware.constructor.prototype.hasOwnProperty('onConnect')) {
             if (message instanceof Message) {
               return middleware.onConnect(socket, message);
             }
@@ -51,14 +51,14 @@ export default class NamespaceWrapper {
 
         }, undefined);
 
-        socket.on(MessageType.MESSAGE, (senderId: string, payload: any) => {
+        socket.on(MessageType.MESSAGE, (payload: any) => {
 
           let message: Message;
 
           // this could be also in a middleware but IMO it would complicate things
           if (!isValidMessagePayload(payload)) {
-            socket.to(senderId).emit(MessageType.NOTIFICATION, new Message(`Unacceptable message format! Correct format: ${MESSAGE_FORMAT}`, senderId, null));
-            console.log(`User [${socket.id}] tried to post malformed message`);
+            socket.to(socket.id).emit(MessageType.NOTIFICATION, new Message(`Unacceptable message format! Correct format: ${MESSAGE_FORMAT}`, socket.id, null));
+            console.log(`User [${socket.id}] tried to post malformed message`, payload);
             return;
           } else {
             message = convertPayloadToMessage(payload);
@@ -70,7 +70,7 @@ export default class NamespaceWrapper {
               return false; // skipp remaining middleware
             }
 
-            if (middleware.hasOwnProperty('onMessage')) {
+            if (middleware.constructor.prototype.hasOwnProperty('onMessage')) {
               return middleware.onMessage(socket, message);
             } else {
               return message;
@@ -87,7 +87,7 @@ export default class NamespaceWrapper {
               return false; // skipp remaining middleware
             }
 
-            if (middleware.hasOwnProperty('onDisconnect')) {
+            if (middleware.constructor.prototype.hasOwnProperty('onDisconnect')) {
               return middleware.onDisconnect(socket, message);
             } else {
               return message;
